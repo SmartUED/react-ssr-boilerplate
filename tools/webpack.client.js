@@ -3,8 +3,16 @@
 const webpack           = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
+const autoprefixer      = require('autoprefixer')
 const paths             = require('./paths')
 const ENV               = process.env.NODE_ENV
+
+const BROWSERS_LIST = [
+  '>1%',
+  'last 4 versions',
+  'Firefox ESR',
+  'not ie < 9',
+]
 
 const webpackConfig = {
   devtool: 'source-map',
@@ -26,6 +34,7 @@ const webpackConfig = {
         options: {
           presets: [
             ['env', {
+              targets: { browsers: BROWSERS_LIST },
               modules: false
             }],
             'react'
@@ -38,14 +47,26 @@ const webpackConfig = {
         include: paths.src,
         use: ExtractTextPlugin.extract({
           fallback: 'style-loader',
-          use: {
-            loader: 'css-loader',
-            options: {
-              modules: true,
-              localIdentName: '[path][name]-[local]-[hash:base64:5]',
-              minimize: ENV === 'production'
+          use: [
+            {
+              loader: 'css-loader',
+              options: {
+                modules: true,
+                importLoaders: 1,
+                localIdentName: '[path][name]-[local]-[hash:base64:5]',
+                minimize: ENV === 'production'
+              }
+            },
+            {
+              loader: 'postcss-loader',
+              options: {
+                ident: 'postcss',
+                plugins: () => [
+                  autoprefixer({ browsers: BROWSERS_LIST })
+                ]
+              }
             }
-          }
+          ]
         })
       },
       {
